@@ -1,0 +1,52 @@
+# Arquivos compilados
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+logs/
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# H2 Database
+*.db
+*.mv.db
+*.trace.db
+
+# Selenium
+*.png
+screenshots/
+
+# JaCoCo
+jacoco.exec
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Node modules (se houver)
+node_modules/
+
+# Build
+build/
+dist/

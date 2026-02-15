@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gerenciamento de Produtos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏪 Sistema de Gerenciamento de Produtos</h1>
+            <p class="subtitle">Sistema CRUD robusto com validações avançadas</p>
+        </header>
+
+        <!-- Mensagens de feedback -->
+        <div id="alertContainer"></div>
+
+        <!-- Formulário de Produto -->
+        <section class="form-section">
+            <h2 id="formTitle">Adicionar Novo Produto</h2>
+            <form id="productForm" novalidate>
+                <input type="hidden" id="productId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Nome do Produto *</label>
+                        <input type="text" id="name" name="name" required 
+                               minlength="3" maxlength="100"
+                               placeholder="Ex: Notebook Dell">
+                        <span class="error-message" id="nameError"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">Categoria *</label>
+                        <input type="text" id="category" name="category" required 
+                               minlength="3" maxlength="50"
+                               placeholder="Ex: Eletrônicos">
+                        <span class="error-message" id="categoryError"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Descrição *</label>
+                    <textarea id="description" name="description" required 
+                              minlength="10" maxlength="500" rows="3"
+                              placeholder="Descrição detalhada do produto (mínimo 10 caracteres)"></textarea>
+                    <span class="error-message" id="descriptionError"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price">Preço (R$) *</label>
+                        <input type="number" id="price" name="price" required 
+                               min="0.01" max="999999.99" step="0.01"
+                               placeholder="0.00">
+                        <span class="error-message" id="priceError"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity">Quantidade *</label>
+                        <input type="number" id="quantity" name="quantity" required 
+                               min="0" max="999999" step="1"
+                               placeholder="0">
+                        <span class="error-message" id="quantityError"></span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        Adicionar Produto
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelBtn" style="display:none;">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Filtros e Busca -->
+        <section class="search-section">
+            <h2>Buscar Produtos</h2>
+            <div class="search-controls">
+                <div class="search-group">
+                    <input type="text" id="searchInput" placeholder="Buscar por nome...">
+                    <button class="btn btn-search" id="searchBtn">🔍 Buscar</button>
+                </div>
+                <button class="btn btn-info" id="lowStockBtn">⚠️ Estoque Baixo</button>
+                <button class="btn btn-secondary" id="showAllBtn">📋 Todos</button>
+            </div>
+        </section>
+
+        <!-- Tabela de Produtos -->
+        <section class="table-section">
+            <h2>Lista de Produtos</h2>
+            <div class="table-info">
+                <span id="productCount">0 produtos encontrados</span>
+            </div>
+            <div class="table-container">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Descrição</th>
+                            <th>Preço</th>
+                            <th>Quantidade</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <!-- Produtos serão inseridos via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty-state" style="display:none;">
+                <p>📦 Nenhum produto cadastrado ainda.</p>
+                <p>Use o formulário acima para adicionar o primeiro produto!</p>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 Sistema de Gerenciamento de Produtos | Desenvolvido com foco em robustez e qualidade</p>
+        </footer>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar Exclusão</h3>
+            <p id="confirmMessage">Tem certeza que deseja excluir este produto?</p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="confirmDeleteBtn">Sim, Excluir</button>
+                <button class="btn btn-secondary" id="cancelDeleteBtn">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
