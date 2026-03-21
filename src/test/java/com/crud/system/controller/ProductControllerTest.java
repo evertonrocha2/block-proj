@@ -23,12 +23,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
 
-/**
- * Testes do Controller usando MockMvc.
- * Testa a camada HTTP sem inicializar todo o contexto Spring.
- */
 @WebMvcTest(ProductController.class)
-@DisplayName("Product Controller - Unit Tests")
+@DisplayName("ProductController - Testes")
 class ProductControllerTest {
 
     @Autowired
@@ -89,7 +85,7 @@ class ProductControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidProduct)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation Error"));
+                .andExpect(jsonPath("$.error").value("Erro de Validação"));
 
         verify(productService, never()).createProduct(any());
     }

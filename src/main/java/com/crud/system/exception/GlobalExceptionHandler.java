@@ -18,211 +18,159 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Manipulador global de exceções.
- * Implementa fail gracefully, fornecendo respostas estruturadas e seguras.
- * Evita exposição de stack traces e informações sensíveis ao usuário.
+ * Handler global de exceções da API.
+ * Retorna respostas padronizadas sem expor stack traces pro cliente.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /**
-     * Trata exceções de recurso não encontrado.
-     */
+    /** Recurso não encontrado - 404. */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
-        
         logger.warn("Recurso não encontrado: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.NOT_FOUND.value(),
-            "Not Found",
-            ex.getMessage(),
-            request.getDescription(false).replace("uri=", "")
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.NOT_FOUND.value(), "Não Encontrado",
+            ex.getMessage(), extractPath(request), null
         );
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    /**
-     * Trata exceções de validação de campos (@Valid).
-     */
+    /** Erro de validação do @Valid - 400. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex, WebRequest request) {
-        
         List<String> errors = new ArrayList<>();
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            errors.add(error.getField() + ": " + error.getDefaultMessage());
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            errors.add(fieldError.getField() + ": " + fieldError.getDefaultMessage());
         }
-        
         logger.warn("Erro de validação: {}", errors);
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value(),
-            "Validation Error",
-            "Erro de validação nos dados fornecidos",
-            request.getDescription(false).replace("uri=", "")
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.BAD_REQUEST.value(), "Erro de Validação",
+            "Erro de validação nos dados fornecidos", extractPath(request), errors
         );
-        errorResponse.setDetails(errors);
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Trata exceções de violação de constraint do Bean Validation.
-     */
+    /** Violação de constraint do Bean Validation - 400. */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(
             ConstraintViolationException ex, WebRequest request) {
-        
         List<String> errors = new ArrayList<>();
-        ex.getConstraintViolations().forEach(violation -> 
-            errors.add(violation.getPropertyPath() + ": " + violation.getMessage())
+        ex.getConstraintViolations().forEach(v ->
+            errors.add(v.getPropertyPath() + ": " + v.getMessage())
         );
-        
         logger.warn("Violação de constraint: {}", errors);
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value(),
-            "Constraint Violation",
-            "Violação de restrições nos dados fornecidos",
-            request.getDescription(false).replace("uri=", "")
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.BAD_REQUEST.value(), "Violação de Constraint",
+            "Violação de restrições nos dados fornecidos", extractPath(request), errors
         );
-        errorResponse.setDetails(errors);
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Trata exceções de regras de negócio.
-     */
+    /** Regra de negócio violada - 422. */
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<ErrorResponse> handleBusinessRuleException(
             BusinessRuleException ex, WebRequest request) {
-        
-        logger.warn("Violação de regra de negócio: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.UNPROCESSABLE_ENTITY.value(),
-            "Business Rule Violation",
-            ex.getMessage(),
-            request.getDescription(false).replace("uri=", "")
+        logger.warn("Regra de negócio violada: {}", ex.getMessage());
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.UNPROCESSABLE_ENTITY.value(), "Violação de Regra de Negócio",
+            ex.getMessage(), extractPath(request), null
         );
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+        return new ResponseEntity<>(error, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
-    /**
-     * Trata exceções de argumentos ilegais.
-     */
+    /** Argumento inválido - 400. */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request) {
-        
-        logger.warn("Argumento ilegal: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value(),
-            "Invalid Argument",
-            ex.getMessage(),
-            request.getDescription(false).replace("uri=", "")
+        logger.warn("Argumento inválido: {}", ex.getMessage());
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.BAD_REQUEST.value(), "Argumento Inválido",
+            ex.getMessage(), extractPath(request), null
         );
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Trata exceções de JSON malformado ou não parseável.
-     */
+    /** JSON malformado na requisição - 400. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException ex, WebRequest request) {
-        
-        logger.warn("Erro ao ler mensagem HTTP: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value(),
-            "Malformed JSON",
+        logger.warn("JSON malformado: {}", ex.getMessage());
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.BAD_REQUEST.value(), "JSON Malformado",
             "O corpo da requisição está malformado ou não pode ser processado",
-            request.getDescription(false).replace("uri=", "")
+            extractPath(request), null
         );
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Trata exceções de tipo de argumento incompatível (ex: passar string onde se espera número).
-     */
+    /** Tipo de parâmetro incompatível (ex: string no lugar de número) - 400. */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException ex, WebRequest request) {
-        
-        logger.warn("Tipo de argumento incompatível: {}", ex.getMessage());
-        
-        String message = String.format("O parâmetro '%s' deveria ser do tipo %s", 
-            ex.getName(), 
+        logger.warn("Tipo incompatível: {}", ex.getMessage());
+
+        String message = String.format("O parâmetro '%s' deveria ser do tipo %s",
+            ex.getName(),
             ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "desconhecido"
         );
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value(),
-            "Invalid Parameter Type",
-            message,
-            request.getDescription(false).replace("uri=", "")
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.BAD_REQUEST.value(), "Tipo de Parâmetro Inválido",
+            message, extractPath(request), null
         );
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Trata NumberFormatException para IDs inválidos.
-     */
+    /** Formato numérico inválido - 400. */
     @ExceptionHandler(NumberFormatException.class)
     public ResponseEntity<ErrorResponse> handleNumberFormatException(
             NumberFormatException ex, WebRequest request) {
-        
-        logger.warn("Formato de número inválido: {}", ex.getMessage());
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value(),
-            "Invalid Number Format",
-            "O formato do número fornecido é inválido",
-            request.getDescription(false).replace("uri=", "")
+        logger.warn("Formato numérico inválido: {}", ex.getMessage());
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.BAD_REQUEST.value(), "Formato Numérico Inválido",
+            "O formato do número fornecido é inválido", extractPath(request), null
         );
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Trata todas as outras exceções não mapeadas.
-     * Implementa fail gracefully sem expor detalhes internos.
-     */
+    /** Handler genérico - não expõe detalhes internos pro cliente. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex, WebRequest request) {
-        
-        // Log completo apenas no servidor (não exposto ao cliente)
         logger.error("Erro interno do servidor", ex);
-        
-        ErrorResponse errorResponse = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Internal Server Error",
+
+        ErrorResponse error = buildErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(), "Erro Interno do Servidor",
             "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
-            request.getDescription(false).replace("uri=", "")
+            extractPath(request), null
         );
-        
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /** Extrai o path da requisição. */
+    private String extractPath(WebRequest request) {
+        return request.getDescription(false).replace("uri=", "");
+    }
+
+    /** Monta o ErrorResponse padronizado. */
+    private ErrorResponse buildErrorResponse(int status, String error, String message, String path, List<String> details) {
+        ErrorResponse response = new ErrorResponse(
+            LocalDateTime.now(), status, error, message, path
+        );
+        if (details != null && !details.isEmpty()) {
+            response.setDetails(details);
+        }
+        return response;
     }
 }

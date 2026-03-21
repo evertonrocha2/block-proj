@@ -9,10 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Testes unitários para a classe ErrorResponse.
- */
-@DisplayName("ErrorResponse Tests")
+@DisplayName("ErrorResponse - Testes")
 class ErrorResponseTest {
 
     @Test

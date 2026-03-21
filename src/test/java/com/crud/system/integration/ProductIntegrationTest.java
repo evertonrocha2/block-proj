@@ -19,10 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Testes de integração end-to-end.
- * Testa o fluxo completo da aplicação com banco de dados real (H2 em memória).
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -119,7 +115,7 @@ class ProductIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testProduct)))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.error").value("Business Rule Violation"))
+                .andExpect(jsonPath("$.error").value("Violação de Regra de Negócio"))
                 .andExpect(jsonPath("$.message", containsString("Já existe")));
     }
 
@@ -133,7 +129,7 @@ class ProductIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidProduct)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation Error"))
+                .andExpect(jsonPath("$.error").value("Erro de Validação"))
                 .andExpect(jsonPath("$.details", not(empty())));
     }
 
@@ -226,7 +222,7 @@ class ProductIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testProduct)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Not Found"));
+                .andExpect(jsonPath("$.error").value("Não Encontrado"));
     }
 
     @Test
@@ -235,7 +231,7 @@ class ProductIntegrationTest {
     void shouldFailToDeleteNonExistentProduct() throws Exception {
         mockMvc.perform(delete("/api/products/999999"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Not Found"));
+                .andExpect(jsonPath("$.error").value("Não Encontrado"));
     }
 
     @Test

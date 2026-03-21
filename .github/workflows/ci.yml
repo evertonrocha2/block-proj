@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build & Testes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build e testes
+        run: mvn -B clean verify --no-transfer-progress -f block-proj/pom.xml
+
+      - name: Gerar relatorio de cobertura
+        run: mvn -B jacoco:report -f block-proj/pom.xml
+        if: always()
+
+      - name: Upload relatorio JaCoCo
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report
+          path: block-proj/target/site/jacoco/
+          retention-days: 14
+
+      - name: Upload resultados dos testes
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: block-proj/target/surefire-reports/
+          retention-days: 14

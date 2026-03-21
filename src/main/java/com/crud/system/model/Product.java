@@ -7,10 +7,6 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Entidade que representa um Produto no sistema.
- * Aplica validações robustas e fail-early para garantir integridade dos dados.
- */
 @Entity
 @Table(name = "products")
 @Data
@@ -60,36 +56,28 @@ public class Product {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        
-        // Fail early: Validações adicionais antes de persistir
         validateBusinessRules();
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-        
-        // Fail early: Validações adicionais antes de atualizar
         validateBusinessRules();
     }
 
-    /**
-     * Validações de regras de negócio aplicadas antes de persistir/atualizar.
-     * Implementa fail-early para detectar problemas antes de atingir o banco de dados.
-     */
     private void validateBusinessRules() {
         if (name != null && name.trim().isEmpty()) {
             throw new IllegalArgumentException("Nome não pode conter apenas espaços em branco");
         }
-        
+
         if (description != null && description.trim().isEmpty()) {
             throw new IllegalArgumentException("Descrição não pode conter apenas espaços em branco");
         }
-        
+
         if (price != null && price.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Preço deve ser maior que zero");
         }
-        
+
         if (quantity != null && quantity < 0) {
             throw new IllegalArgumentException("Quantidade não pode ser negativa");
         }

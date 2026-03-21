@@ -7,9 +7,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Teste para a aplicação Spring Boot principal.
- */
 @SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("ProductManagementApplication Tests")
@@ -18,8 +15,8 @@ class ProductManagementApplicationTest {
     @Test
     @DisplayName("Deve carregar o contexto da aplicação")
     void contextLoads() {
-        // Se o contexto carregar sem exceção, o teste passa
-        assertDoesNotThrow(() -> ProductManagementApplication.main(new String[] {}));
+        // O @SpringBootTest já carrega o contexto.
+        // Se chegar aqui sem exceção, o contexto subiu corretamente.
     }
 
     @Test

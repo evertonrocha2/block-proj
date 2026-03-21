@@ -1,7 +1,7 @@
 package com.crud.system.controller;
 
 import com.crud.system.model.Product;
-import com.crud.system.service.ProductService;
+import com.crud.system.service.IProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controller REST para operações CRUD de produtos.
- * Expõe endpoints RESTful seguindo convenções HTTP.
+ * Controller REST para o CRUD de produtos.
+ * Endpoints disponíveis em /api/products.
  */
 @RestController
 @RequestMapping("/api/products")
@@ -26,100 +26,63 @@ public class ProductController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
-    private final ProductService productService;
+    private final IProductService productService;
 
     @Autowired
-    public ProductController(ProductService productService) {
+    public ProductController(IProductService productService) {
         this.productService = productService;
     }
 
-    /**
-     * Cria um novo produto.
-     * POST /api/products
-     */
+    /** POST /api/products - Cria um novo produto. */
     @PostMapping
     public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) {
-        logger.info("Requisição recebida para criar produto");
-        Product createdProduct = productService.createProduct(product);
-        return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+        logger.info("POST /api/products");
+        Product created = productService.createProduct(product);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    /**
-     * Lista todos os produtos.
-     * GET /api/products
-     */
+    /** GET /api/products - Lista todos os produtos. */
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
-        logger.info("Requisição recebida para listar todos os produtos");
-        List<Product> products = productService.getAllProducts();
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(productService.getAllProducts());
     }
 
-    /**
-     * Busca um produto por ID.
-     * GET /api/products/{id}
-     */
+    /** GET /api/products/{id} - Busca produto por ID. */
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable @NotNull Long id) {
-        logger.info("Requisição recebida para buscar produto ID: {}", id);
-        Product product = productService.getProductById(id);
-        return ResponseEntity.ok(product);
+        return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    /**
-     * Atualiza um produto existente.
-     * PUT /api/products/{id}
-     */
+    /** PUT /api/products/{id} - Atualiza um produto. */
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(
             @PathVariable @NotNull Long id,
             @Valid @RequestBody Product productDetails) {
-        logger.info("Requisição recebida para atualizar produto ID: {}", id);
-        Product updatedProduct = productService.updateProduct(id, productDetails);
-        return ResponseEntity.ok(updatedProduct);
+        return ResponseEntity.ok(productService.updateProduct(id, productDetails));
     }
 
-    /**
-     * Deleta um produto.
-     * DELETE /api/products/{id}
-     */
+    /** DELETE /api/products/{id} - Remove um produto. */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable @NotNull Long id) {
-        logger.info("Requisição recebida para deletar produto ID: {}", id);
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Busca produtos por categoria.
-     * GET /api/products/category/{category}
-     */
+    /** GET /api/products/category/{category} - Filtra por categoria. */
     @GetMapping("/category/{category}")
     public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable @NotNull String category) {
-        logger.info("Requisição recebida para buscar produtos da categoria: {}", category);
-        List<Product> products = productService.getProductsByCategory(category);
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(productService.getProductsByCategory(category));
     }
 
-    /**
-     * Busca produtos por nome (busca parcial).
-     * GET /api/products/search?name={name}
-     */
+    /** GET /api/products/search?name={name} - Busca por nome (parcial). */
     @GetMapping("/search")
     public ResponseEntity<List<Product>> searchProductsByName(@RequestParam @NotNull String name) {
-        logger.info("Requisição recebida para buscar produtos com nome: {}", name);
-        List<Product> products = productService.searchProductsByName(name);
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(productService.searchProductsByName(name));
     }
 
-    /**
-     * Lista produtos com estoque baixo.
-     * GET /api/products/low-stock
-     */
+    /** GET /api/products/low-stock - Produtos com estoque baixo. */
     @GetMapping("/low-stock")
     public ResponseEntity<List<Product>> getLowStockProducts() {
-        logger.info("Requisição recebida para listar produtos com estoque baixo");
-        List<Product> products = productService.getLowStockProducts();
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(productService.getLowStockProducts());
     }
 }

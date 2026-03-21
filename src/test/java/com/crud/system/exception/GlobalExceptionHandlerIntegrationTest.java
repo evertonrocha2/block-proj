@@ -13,9 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Testes integrados para o GlobalExceptionHandler.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -33,7 +30,7 @@ class GlobalExceptionHandlerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.error").value("Não Encontrado"))
                 .andExpect(jsonPath("$.message").exists());
     }
 
@@ -55,7 +52,7 @@ class GlobalExceptionHandlerIntegrationTest {
                 .content(invalidProduct))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Validation Error"));
+                .andExpect(jsonPath("$.error").value("Erro de Validação"));
     }
 
     @Test
@@ -83,7 +80,7 @@ class GlobalExceptionHandlerIntegrationTest {
                 .content(product1))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.status").value(422))
-                .andExpect(jsonPath("$.error").value("Business Rule Violation"));
+                .andExpect(jsonPath("$.error").value("Violação de Regra de Negócio"));
     }
 
     @Test
@@ -93,7 +90,7 @@ class GlobalExceptionHandlerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Invalid Argument"));
+                .andExpect(jsonPath("$.error").value("Argumento Inválido"));
     }
 
     @Test
@@ -106,7 +103,7 @@ class GlobalExceptionHandlerIntegrationTest {
                 .content(malformedJson))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Malformed JSON"));
+                .andExpect(jsonPath("$.error").value("JSON Malformado"));
     }
 
     @Test
@@ -116,7 +113,7 @@ class GlobalExceptionHandlerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.error").value("Invalid Parameter Type"));
+                .andExpect(jsonPath("$.error").value("Tipo de Parâmetro Inválido"));
     }
 
     @Test

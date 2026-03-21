@@ -16,10 +16,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Testes unitários para cobrir casos específicos do GlobalExceptionHandler.
- */
-@DisplayName("GlobalExceptionHandler Unit Tests")
+@DisplayName("GlobalExceptionHandler - Testes Unitários")
 class GlobalExceptionHandlerUnitTest {
 
     private GlobalExceptionHandler handler;
@@ -60,7 +57,7 @@ class GlobalExceptionHandlerUnitTest {
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(400, response.getBody().getStatus());
-        assertEquals("Constraint Violation", response.getBody().getError());
+        assertEquals("Violação de Constraint", response.getBody().getError());
         assertNotNull(response.getBody().getDetails());
         assertEquals(2, response.getBody().getDetails().size());
     }
@@ -75,7 +72,7 @@ class GlobalExceptionHandlerUnitTest {
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(400, response.getBody().getStatus());
-        assertEquals("Invalid Number Format", response.getBody().getError());
+        assertEquals("Formato Numérico Inválido", response.getBody().getError());
         assertEquals("O formato do número fornecido é inválido", response.getBody().getMessage());
     }
 
@@ -89,7 +86,7 @@ class GlobalExceptionHandlerUnitTest {
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals(404, response.getBody().getStatus());
-        assertEquals("Not Found", response.getBody().getError());
+        assertEquals("Não Encontrado", response.getBody().getError());
     }
 
     @Test
@@ -102,7 +99,7 @@ class GlobalExceptionHandlerUnitTest {
         assertNotNull(response);
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
         assertEquals(422, response.getBody().getStatus());
-        assertEquals("Business Rule Violation", response.getBody().getError());
+        assertEquals("Violação de Regra de Negócio", response.getBody().getError());
     }
 
     @Test
@@ -115,7 +112,7 @@ class GlobalExceptionHandlerUnitTest {
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(400, response.getBody().getStatus());
-        assertEquals("Invalid Argument", response.getBody().getError());
+        assertEquals("Argumento Inválido", response.getBody().getError());
     }
 
     @Test
@@ -128,7 +125,7 @@ class GlobalExceptionHandlerUnitTest {
         assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals(500, response.getBody().getStatus());
-        assertEquals("Internal Server Error", response.getBody().getError());
+        assertEquals("Erro Interno do Servidor", response.getBody().getError());
         // Verifica que não expõe detalhes internos
         assertFalse(response.getBody().getMessage().contains("RuntimeException"));
         assertTrue(response.getBody().getMessage().contains("erro inesperado"));
