@@ -71,7 +71,7 @@ public class Order {
     public void calculateTotal() {
         if (items != null && !items.isEmpty()) {
             this.totalValue = items.stream()
-                .map(OrderItem::getSubtotal)
+                .map(item -> item.getSubtotal() != null ? item.getSubtotal() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         } else {
             this.totalValue = BigDecimal.ZERO;

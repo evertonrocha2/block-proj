@@ -200,9 +200,128 @@ class ProductTest {
     void shouldCalculateHashCodeWithoutId() {
         Product product = new Product();
         product.setName("Produto");
-        
+
         int hashCode = product.hashCode();
-        
+
         assertNotEquals(0, hashCode);
+    }
+
+    @Test
+    @DisplayName("onCreate deve preencher timestamps e validar")
+    void shouldSetTimestampsOnCreate() {
+        Product product = Product.builder()
+                .name("Notebook Dell")
+                .description("Notebook Dell Inspiron 15, 8GB RAM")
+                .price(new BigDecimal("2500.00"))
+                .quantity(10)
+                .category("Eletrônicos")
+                .build();
+
+        product.onCreate();
+
+        assertNotNull(product.getCreatedAt());
+        assertNotNull(product.getUpdatedAt());
+    }
+
+    @Test
+    @DisplayName("onUpdate deve atualizar updatedAt")
+    void shouldUpdateTimestampOnUpdate() {
+        Product product = Product.builder()
+                .name("Notebook Dell")
+                .description("Notebook Dell Inspiron 15, 8GB RAM")
+                .price(new BigDecimal("2500.00"))
+                .quantity(10)
+                .category("Eletrônicos")
+                .build();
+
+        product.onCreate();
+        var created = product.getUpdatedAt();
+
+        product.onUpdate();
+
+        assertNotNull(product.getUpdatedAt());
+    }
+
+    @Test
+    @DisplayName("validateBusinessRules deve rejeitar nome só com espaços")
+    void shouldRejectBlankName() {
+        Product product = Product.builder()
+                .name("   ")
+                .description("Descrição válida do produto")
+                .price(new BigDecimal("100.00"))
+                .quantity(10)
+                .category("Categoria")
+                .build();
+
+        assertThrows(IllegalArgumentException.class, product::onCreate);
+    }
+
+    @Test
+    @DisplayName("validateBusinessRules deve rejeitar descrição só com espaços")
+    void shouldRejectBlankDescription() {
+        Product product = Product.builder()
+                .name("Produto Valido")
+                .description("   ")
+                .price(new BigDecimal("100.00"))
+                .quantity(10)
+                .category("Categoria")
+                .build();
+
+        assertThrows(IllegalArgumentException.class, product::onCreate);
+    }
+
+    @Test
+    @DisplayName("validateBusinessRules deve rejeitar preço zero ou negativo")
+    void shouldRejectZeroPrice() {
+        Product product = Product.builder()
+                .name("Produto Valido")
+                .description("Descrição válida do produto")
+                .price(BigDecimal.ZERO)
+                .quantity(10)
+                .category("Categoria")
+                .build();
+
+        assertThrows(IllegalArgumentException.class, product::onCreate);
+    }
+
+    @Test
+    @DisplayName("validateBusinessRules deve rejeitar quantidade negativa")
+    void shouldRejectNegativeQuantity() {
+        Product product = Product.builder()
+                .name("Produto Valido")
+                .description("Descrição válida do produto")
+                .price(new BigDecimal("100.00"))
+                .quantity(-5)
+                .category("Categoria")
+                .build();
+
+        assertThrows(IllegalArgumentException.class, product::onCreate);
+    }
+
+    @Test
+    @DisplayName("Deve criar produto com builder")
+    void shouldCreateWithBuilder() {
+        Product product = Product.builder()
+                .id(1L)
+                .name("Notebook Dell")
+                .description("Notebook Dell Inspiron 15, 8GB RAM")
+                .price(new BigDecimal("2500.00"))
+                .quantity(10)
+                .category("Eletrônicos")
+                .build();
+
+        assertEquals(1L, product.getId());
+        assertEquals("Notebook Dell", product.getName());
+        assertEquals(new BigDecimal("2500.00"), product.getPrice());
+    }
+
+    @Test
+    @DisplayName("Deve criar produto com AllArgsConstructor")
+    void shouldCreateWithAllArgs() {
+        Product product = new Product(1L, "Notebook", "Desc valida pra teste",
+                new BigDecimal("2500.00"), 10, "Eletrônicos", null, null);
+
+        assertEquals(1L, product.getId());
+        assertEquals("Notebook", product.getName());
     }
 }
