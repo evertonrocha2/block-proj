@@ -24,10 +24,10 @@ jobs:
           cache: 'maven'
 
       - name: Build e testes
-        run: mvn -B clean verify --no-transfer-progress -f block-proj/pom.xml
+        run: mvn -B clean verify --no-transfer-progress
 
       - name: Gerar relatorio de cobertura
-        run: mvn -B jacoco:report -f block-proj/pom.xml
+        run: mvn -B jacoco:report
         if: always()
 
       - name: Upload relatorio JaCoCo
@@ -35,7 +35,7 @@ jobs:
         if: always()
         with:
           name: jacoco-report
-          path: block-proj/target/site/jacoco/
+          path: target/site/jacoco/
           retention-days: 14
 
       - name: Upload resultados dos testes
@@ -43,5 +43,5 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: block-proj/target/surefire-reports/
+          path: target/surefire-reports/
           retention-days: 14
