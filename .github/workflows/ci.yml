@@ -120,13 +120,22 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
 
+      - name: Cache OWASP NVD Database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: owasp-nvd-${{ github.run_number }}
+          restore-keys: owasp-nvd-
+
       - name: OWASP Dependency Check
+        timeout-minutes: 10
         run: |
           echo "::group::Verificando dependencias com vulnerabilidades conhecidas"
           mvn -B org.owasp:dependency-check-maven:check --no-transfer-progress \
             -DfailBuildOnCVSS=9 \
             -DsuppressionFile='' \
-            -Dformat=HTML || true
+            -Dformat=HTML \
+            -DnvdValidForHours=72 || true
           echo "::endgroup::"
 
       - name: Resumo SAST
