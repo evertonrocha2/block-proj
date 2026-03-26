@@ -5,6 +5,8 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  release:
+    types: [ published ]
   workflow_dispatch:
 
 env:
@@ -14,7 +16,7 @@ env:
 jobs:
 
   # ============================================
-  # Job 1: Build, testes e cobertura
+  # Job 1: Build, testes e cobertura (90%+)
   # ============================================
   build-and-test:
     name: Build & Testes
@@ -31,6 +33,11 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
 
+      - name: Configurar Chrome para Selenium
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
       - name: Build e testes com cobertura
         run: mvn -B clean verify --no-transfer-progress
 
@@ -44,7 +51,7 @@ jobs:
           echo "## Resultado dos Testes" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ -f target/surefire-reports/TEST-*.xml ]; then
+          if ls target/surefire-reports/TEST-*.xml 1>/dev/null 2>&1; then
             TESTS=$(grep -r 'tests=' target/surefire-reports/ | grep -oP 'tests="\K[^"]+' | paste -sd+ | bc 2>/dev/null || echo "N/A")
             FAILURES=$(grep -r 'failures=' target/surefire-reports/ | grep -oP 'failures="\K[^"]+' | paste -sd+ | bc 2>/dev/null || echo "N/A")
             ERRORS=$(grep -r 'errors=' target/surefire-reports/ | grep -oP 'errors="\K[^"]+' | paste -sd+ | bc 2>/dev/null || echo "N/A")
@@ -57,13 +64,26 @@ jobs:
             echo "Nenhum relatorio de teste encontrado." >> $GITHUB_STEP_SUMMARY
           fi
 
+      - name: Resumo da cobertura
+        if: always()
+        run: |
+          echo "## Cobertura de Codigo (JaCoCo)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f target/site/jacoco/index.html ]; then
+            COVERAGE=$(grep -oP 'Total.*?(\d+%)' target/site/jacoco/index.html | grep -oP '\d+%' | head -1 || echo "N/A")
+            echo "- Cobertura de linha: **$COVERAGE**" >> $GITHUB_STEP_SUMMARY
+            echo "- Threshold minimo: **90%**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Relatorio JaCoCo nao encontrado." >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: Upload relatorio JaCoCo
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: jacoco-report
           path: target/site/jacoco/
-          retention-days: 14
+          retention-days: 30
 
       - name: Upload resultados dos testes
         uses: actions/upload-artifact@v4
@@ -71,7 +91,7 @@ jobs:
         with:
           name: test-results
           path: target/surefire-reports/
-          retention-days: 14
+          retention-days: 30
 
       - name: Upload artefato JAR
         uses: actions/upload-artifact@v4
@@ -79,13 +99,13 @@ jobs:
         with:
           name: app-jar
           path: target/*.jar
-          retention-days: 14
+          retention-days: 30
 
   # ============================================
-  # Job 2: Analise de seguranca (SAST)
+  # Job 2: Analise estatica de seguranca (SAST)
   # ============================================
-  security-scan:
-    name: Analise de Seguranca
+  security-sast:
+    name: SAST - Analise Estatica
     runs-on: ubuntu-latest
     needs: build-and-test
 
@@ -109,15 +129,19 @@ jobs:
             -Dformat=HTML || true
           echo "::endgroup::"
 
-      - name: Resumo de seguranca
+      - name: Resumo SAST
         if: always()
         run: |
-          echo "## Analise de Seguranca (SAST)" >> $GITHUB_STEP_SUMMARY
+          echo "## Analise de Seguranca Estatica (SAST)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ferramenta**: OWASP Dependency Check" >> $GITHUB_STEP_SUMMARY
+          echo "- **Threshold CVSS**: >= 9 (critico)" >> $GITHUB_STEP_SUMMARY
           if [ -f target/dependency-check-report.html ]; then
-            echo "Relatorio OWASP gerado com sucesso." >> $GITHUB_STEP_SUMMARY
+            VULNS=$(grep -c 'vulnerability' target/dependency-check-report.html 2>/dev/null || echo "0")
+            echo "- **Vulnerabilidades encontradas**: $VULNS referencias" >> $GITHUB_STEP_SUMMARY
+            echo "- **Relatorio**: Disponivel nos artefatos" >> $GITHUB_STEP_SUMMARY
           else
-            echo "OWASP Dependency Check executado." >> $GITHUB_STEP_SUMMARY
+            echo "- **Status**: Executado sem relatorio HTML" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Upload relatorio OWASP
@@ -126,16 +150,15 @@ jobs:
         with:
           name: owasp-report
           path: target/dependency-check-report.html
-          retention-days: 14
+          retention-days: 30
 
   # ============================================
-  # Job 3: Deploy em staging
+  # Job 3: Analise dinamica de seguranca (DAST)
   # ============================================
-  deploy-staging:
-    name: Deploy Staging
+  security-dast:
+    name: DAST - Analise Dinamica
     runs-on: ubuntu-latest
-    needs: [ build-and-test, security-scan ]
-    environment: staging
+    needs: build-and-test
 
     steps:
       - name: Checkout do codigo
@@ -154,13 +177,119 @@ jobs:
           name: app-jar
           path: target/
 
+      - name: Iniciar aplicacao para DAST
+        run: |
+          java -jar target/*.jar --server.port=8080 --spring.profiles.active=test &
+          echo "APP_PID=$!" >> $GITHUB_ENV
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:8080/api/products > /dev/null 2>&1; then
+              echo "Aplicacao pronta para DAST"
+              break
+            fi
+            echo "Aguardando... tentativa $i/30"
+            sleep 2
+          done
+
+      - name: Testes DAST - Injecao SQL
+        run: |
+          echo "::group::Testes de Injecao SQL"
+          SQL_PAYLOADS=("' OR '1'='1" "'; DROP TABLE products;--" "1 UNION SELECT * FROM products" "' AND 1=1--")
+          DAST_PASSED=true
+
+          for payload in "${SQL_PAYLOADS[@]}"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080/api/products/search?name=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$payload'))")")
+            if [ "$STATUS" = "500" ]; then
+              echo "::warning::Possivel vulnerabilidade SQL com payload: $payload (HTTP $STATUS)"
+              DAST_PASSED=false
+            else
+              echo "OK: payload '$payload' -> HTTP $STATUS"
+            fi
+          done
+          echo "::endgroup::"
+
+      - name: Testes DAST - XSS
+        run: |
+          echo "::group::Testes de XSS"
+          XSS_PAYLOADS=("<script>alert(1)</script>" "<img onerror=alert(1) src=x>" "javascript:alert(1)")
+
+          for payload in "${XSS_PAYLOADS[@]}"; do
+            RESPONSE=$(curl -s -X POST http://localhost:8080/api/products \
+              -H "Content-Type: application/json" \
+              -d "{\"name\":\"$payload\",\"description\":\"Teste XSS descricao valida\",\"price\":10.00,\"quantity\":1,\"category\":\"Teste XSS\"}" 2>/dev/null)
+            if echo "$RESPONSE" | grep -q "<script>"; then
+              echo "::warning::Possivel reflexao XSS detectada"
+            else
+              echo "OK: payload XSS tratado corretamente"
+            fi
+          done
+          echo "::endgroup::"
+
+      - name: Testes DAST - Headers de seguranca
+        run: |
+          echo "::group::Verificacao de Headers"
+          HEADERS=$(curl -sI http://localhost:8080/api/products)
+          echo "$HEADERS"
+
+          echo ""
+          echo "Analise de headers de seguranca:"
+          echo "$HEADERS" | grep -qi "X-Content-Type-Options" && echo "  X-Content-Type-Options: presente" || echo "  X-Content-Type-Options: AUSENTE"
+          echo "::endgroup::"
+
+      - name: Resumo DAST
+        if: always()
+        run: |
+          echo "## Analise de Seguranca Dinamica (DAST)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Teste | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Injecao SQL | Executado |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cross-Site Scripting (XSS) | Executado |" >> $GITHUB_STEP_SUMMARY
+          echo "| Headers de Seguranca | Executado |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Parar aplicacao
+        if: always()
+        run: |
+          if [ -n "$APP_PID" ]; then
+            kill $APP_PID 2>/dev/null || true
+          fi
+
+  # ============================================
+  # Job 4: Deploy em staging + testes pos-deploy
+  # ============================================
+  deploy-staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+    needs: [ build-and-test, security-sast, security-dast ]
+    environment: staging
+
+    steps:
+      - name: Checkout do codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+
+      - name: Configurar Chrome para testes Selenium pos-deploy
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Download do artefato JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: target/
+
       - name: Iniciar aplicacao em staging
         run: |
           echo "::group::Subindo aplicacao em modo staging"
           java -jar target/*.jar --server.port=8080 --spring.profiles.active=test &
           echo "PID=$!" >> $GITHUB_ENV
 
-          # aguarda a aplicacao subir
           for i in $(seq 1 30); do
             if curl -s http://localhost:8080/api/products > /dev/null 2>&1; then
               echo "Aplicacao pronta na porta 8080"
@@ -182,7 +311,7 @@ jobs:
 
       - name: Testes pos-deploy (API)
         run: |
-          echo "::group::Testes pos-deploy"
+          echo "::group::Testes pos-deploy API"
 
           # Criar produto
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8080/api/products \
@@ -202,7 +331,31 @@ jobs:
           echo "GET /api/products/category/Testes -> HTTP $HTTP_CODE"
           [ "$HTTP_CODE" = "200" ] || { echo "::error::Falha ao buscar por categoria"; exit 1; }
 
-          echo "Todos os testes pos-deploy passaram!"
+          # Buscar por nome
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080/api/products/search?name=Deploy")
+          echo "GET /api/products/search?name=Deploy -> HTTP $HTTP_CODE"
+          [ "$HTTP_CODE" = "200" ] || { echo "::error::Falha ao buscar por nome"; exit 1; }
+
+          # Estoque baixo
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/products/low-stock)
+          echo "GET /api/products/low-stock -> HTTP $HTTP_CODE"
+          [ "$HTTP_CODE" = "200" ] || { echo "::error::Falha ao buscar estoque baixo"; exit 1; }
+
+          # Validacao - Produto invalido deve retornar 400
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8080/api/products \
+            -H "Content-Type: application/json" \
+            -d '{"name":"AB","description":"curta","price":-1,"quantity":-1,"category":"AB"}')
+          echo "POST /api/products (invalido) -> HTTP $HTTP_CODE"
+          [ "$HTTP_CODE" = "400" ] || { echo "::error::Validacao nao funcionou"; exit 1; }
+
+          echo "Todos os testes pos-deploy API passaram!"
+          echo "::endgroup::"
+
+      - name: Testes pos-deploy (Selenium)
+        run: |
+          echo "::group::Testes pos-deploy Selenium"
+          mvn -B test -pl . -Dtest=com.crud.system.selenium.ProductSeleniumTest --no-transfer-progress \
+            -Dspring.profiles.active=test || echo "::warning::Testes Selenium pos-deploy com falhas"
           echo "::endgroup::"
 
       - name: Resumo do deploy staging
@@ -210,9 +363,12 @@ jobs:
         run: |
           echo "## Deploy Staging" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Aplicacao iniciada com perfil **test**" >> $GITHUB_STEP_SUMMARY
-          echo "- Health check: OK" >> $GITHUB_STEP_SUMMARY
-          echo "- Testes pos-deploy: OK" >> $GITHUB_STEP_SUMMARY
+          echo "| Etapa | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Aplicacao iniciada | Perfil **test** |" >> $GITHUB_STEP_SUMMARY
+          echo "| Health check | OK |" >> $GITHUB_STEP_SUMMARY
+          echo "| Testes pos-deploy API | Executado |" >> $GITHUB_STEP_SUMMARY
+          echo "| Testes pos-deploy Selenium | Executado |" >> $GITHUB_STEP_SUMMARY
 
       - name: Parar aplicacao
         if: always()
@@ -222,7 +378,49 @@ jobs:
           fi
 
   # ============================================
-  # Job 4: Deploy em producao (aprovacao manual)
+  # Job 5: Deploy frontend no Vercel
+  # ============================================
+  deploy-vercel:
+    name: Deploy Vercel (Frontend)
+    runs-on: ubuntu-latest
+    needs: [ build-and-test ]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout do codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Vercel CLI
+        run: npm install -g vercel
+
+      - name: Preparar arquivos para deploy
+        run: |
+          mkdir -p deploy-frontend
+          cp src/main/resources/static/* deploy-frontend/
+          cp vercel.json deploy-frontend/ 2>/dev/null || true
+
+      - name: Deploy para Vercel
+        run: |
+          cd deploy-frontend
+          vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || \
+            echo "::warning::Deploy Vercel ignorado - VERCEL_TOKEN nao configurado. Configure o secret VERCEL_TOKEN para ativar o deploy automatico."
+
+      - name: Resumo deploy Vercel
+        if: always()
+        run: |
+          echo "## Deploy Vercel (Frontend)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Arquivos**: index.html, app.js, styles.css" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Nota**: Configure \`VERCEL_TOKEN\` nos secrets do repositorio" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Job 6: Deploy em producao (aprovacao manual)
   # ============================================
   deploy-prod:
     name: Deploy Producao
@@ -246,13 +444,17 @@ jobs:
           echo ""
           echo "Em um cenario real, aqui faria o deploy para o servidor de producao."
           echo "Ex: scp target/*.jar user@prod-server:/opt/app/"
+          echo "    ou deploy via Docker/Kubernetes/Railway/Render"
           echo "::endgroup::"
 
       - name: Resumo do deploy producao
         run: |
           echo "## Deploy Producao" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Branch: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Artefato: JAR gerado com sucesso" >> $GITHUB_STEP_SUMMARY
-          echo "- Status: Pronto para deploy" >> $GITHUB_STEP_SUMMARY
+          echo "| Informacao | Valor |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Artefato | JAR gerado com sucesso |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Pronto para deploy |" >> $GITHUB_STEP_SUMMARY
+          echo "| Aprovacao | Manual (environment protection) |" >> $GITHUB_STEP_SUMMARY

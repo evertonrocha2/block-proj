@@ -163,14 +163,8 @@ public class GlobalExceptionHandler {
         return request.getDescription(false).replace("uri=", "");
     }
 
-    /** Monta o ErrorResponse padronizado. */
+    /** Monta o ErrorResponse padronizado (imutável). */
     private ErrorResponse buildErrorResponse(int status, String error, String message, String path, List<String> details) {
-        ErrorResponse response = new ErrorResponse(
-            LocalDateTime.now(), status, error, message, path
-        );
-        if (details != null && !details.isEmpty()) {
-            response.setDetails(details);
-        }
-        return response;
+        return new ErrorResponse(LocalDateTime.now(), status, error, message, path, details);
     }
 }

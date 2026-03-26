@@ -23,6 +23,10 @@ public class ProductService implements IProductService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
+    private static final String ERROR_CRIAR = "Erro ao criar produto. Por favor, tente novamente.";
+    private static final String ERROR_BUSCAR = "Erro ao buscar produto. Por favor, tente novamente.";
+    private static final String ERROR_BUSCAR_LISTA = "Erro ao buscar produtos. Por favor, tente novamente.";
+
     @Value("${product.low-stock.threshold:10}")
     private Integer lowStockThreshold = 10;
 

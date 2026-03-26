@@ -3,6 +3,7 @@ package com.crud.system.selenium;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -146,19 +147,32 @@ class ProductSeleniumTest {
     @DisplayName("Deve validar valores numéricos")
     void shouldValidateNumericValues() {
         driver.get(baseUrl);
-        
-        // Preenche formulário com valores inválidos
-        fillProductForm("Produto Teste", "Categoria", 
-                       "Descrição válida do produto", "-10.00", "-5");
-        
-        WebElement submitBtn = driver.findElement(By.id("submitBtn"));
-        submitBtn.click();
-        
-        // Deve exibir alerta de erro
-        WebElement alert = wait.until(ExpectedConditions.presenceOfElementLocated(
-            By.className("alert-error")
-        ));
-        assertTrue(alert.isDisplayed());
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("productForm")));
+
+        // Preenche campos de texto normalmente
+        driver.findElement(By.id("name")).sendKeys("Produto Teste");
+        driver.findElement(By.id("category")).sendKeys("Categoria");
+        driver.findElement(By.id("description")).sendKeys("Descrição válida do produto");
+
+        // Usa JavaScript para definir valores negativos em inputs numéricos
+        // sendKeys em inputs type="number" pode ignorar o sinal negativo em headless Chrome
+        ((JavascriptExecutor) driver).executeScript(
+            "document.getElementById('price').value = '-10';" +
+            "document.getElementById('quantity').value = '-5';"
+        );
+
+        driver.findElement(By.id("submitBtn")).click();
+
+        // Aguarda validação - verifica erro de campo ou alerta global
+        boolean hasValidationError = wait.until(d -> {
+            // Verifica erros de campo (exibidos de forma síncrona pela validação JS)
+            List<WebElement> fieldErrors = d.findElements(By.cssSelector(".error-message.show"));
+            if (!fieldErrors.isEmpty()) return true;
+            // Verifica alerta de erro global
+            List<WebElement> alerts = d.findElements(By.cssSelector(".alert.alert-error"));
+            return alerts.stream().anyMatch(WebElement::isDisplayed);
+        });
+        assertTrue(hasValidationError);
     }
 
     @Test

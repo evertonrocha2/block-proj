@@ -1,5 +1,8 @@
 package com.crud.system.controller;
 
+import com.crud.system.dto.ProductMapper;
+import com.crud.system.dto.ProductRequestDTO;
+import com.crud.system.dto.ProductResponseDTO;
 import com.crud.system.model.Product;
 import com.crud.system.service.IProductService;
 import jakarta.validation.Valid;
@@ -16,7 +19,8 @@ import java.util.List;
 
 /**
  * Controller REST para o CRUD de produtos.
- * Endpoints disponíveis em /api/products.
+ * Usa DTOs para separar a camada de interface da camada de domínio,
+ * aplicando o princípio de separação de responsabilidades.
  */
 @RestController
 @RequestMapping("/api/products")
@@ -33,32 +37,38 @@ public class ProductController {
         this.productService = productService;
     }
 
-    /** POST /api/products - Cria um novo produto. */
+    /** POST /api/products - Cria um novo produto via DTO. */
     @PostMapping
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) {
+    public ResponseEntity<ProductResponseDTO> createProduct(@Valid @RequestBody ProductRequestDTO requestDTO) {
         logger.info("POST /api/products");
+        Product product = ProductMapper.toEntity(requestDTO);
         Product created = productService.createProduct(product);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        return new ResponseEntity<>(ProductMapper.toResponseDTO(created), HttpStatus.CREATED);
     }
 
     /** GET /api/products - Lista todos os produtos. */
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
+        List<ProductResponseDTO> products = productService.getAllProducts().stream()
+            .map(ProductMapper::toResponseDTO)
+            .toList();
+        return ResponseEntity.ok(products);
     }
 
     /** GET /api/products/{id} - Busca produto por ID. */
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable @NotNull Long id) {
-        return ResponseEntity.ok(productService.getProductById(id));
+    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable @NotNull Long id) {
+        return ResponseEntity.ok(ProductMapper.toResponseDTO(productService.getProductById(id)));
     }
 
-    /** PUT /api/products/{id} - Atualiza um produto. */
+    /** PUT /api/products/{id} - Atualiza um produto via DTO. */
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(
+    public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable @NotNull Long id,
-            @Valid @RequestBody Product productDetails) {
-        return ResponseEntity.ok(productService.updateProduct(id, productDetails));
+            @Valid @RequestBody ProductRequestDTO requestDTO) {
+        Product productDetails = ProductMapper.toEntity(requestDTO);
+        Product updated = productService.updateProduct(id, productDetails);
+        return ResponseEntity.ok(ProductMapper.toResponseDTO(updated));
     }
 
     /** DELETE /api/products/{id} - Remove um produto. */
@@ -70,19 +80,28 @@ public class ProductController {
 
     /** GET /api/products/category/{category} - Filtra por categoria. */
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable @NotNull String category) {
-        return ResponseEntity.ok(productService.getProductsByCategory(category));
+    public ResponseEntity<List<ProductResponseDTO>> getProductsByCategory(@PathVariable @NotNull String category) {
+        List<ProductResponseDTO> products = productService.getProductsByCategory(category).stream()
+            .map(ProductMapper::toResponseDTO)
+            .toList();
+        return ResponseEntity.ok(products);
     }
 
     /** GET /api/products/search?name={name} - Busca por nome (parcial). */
     @GetMapping("/search")
-    public ResponseEntity<List<Product>> searchProductsByName(@RequestParam @NotNull String name) {
-        return ResponseEntity.ok(productService.searchProductsByName(name));
+    public ResponseEntity<List<ProductResponseDTO>> searchProductsByName(@RequestParam @NotNull String name) {
+        List<ProductResponseDTO> products = productService.searchProductsByName(name).stream()
+            .map(ProductMapper::toResponseDTO)
+            .toList();
+        return ResponseEntity.ok(products);
     }
 
     /** GET /api/products/low-stock - Produtos com estoque baixo. */
     @GetMapping("/low-stock")
-    public ResponseEntity<List<Product>> getLowStockProducts() {
-        return ResponseEntity.ok(productService.getLowStockProducts());
+    public ResponseEntity<List<ProductResponseDTO>> getLowStockProducts() {
+        List<ProductResponseDTO> products = productService.getLowStockProducts().stream()
+            .map(ProductMapper::toResponseDTO)
+            .toList();
+        return ResponseEntity.ok(products);
     }
 }
