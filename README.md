@@ -11,6 +11,9 @@ Sistema de gerenciamento de produtos e pedidos com Spring Boot, interface web e 
 
 ---
 
+LINK DO DEPLOY: https://block-proj-lvpqujgi4-evertonrocha2s-projects.vercel.app/
+
+---
 ## Arquitetura do Sistema
 
 ```
