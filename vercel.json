@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "product-management-frontend",
+  "name": "gerenciatte",
   "builds": [
     {
       "src": "src/main/resources/static/**",

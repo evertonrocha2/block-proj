@@ -154,15 +154,15 @@ async function handleSubmit(e) {
         handleError(error);
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = currentEditId ? 'Atualizar Produto' : 'Adicionar Produto';
+        submitBtn.textContent = currentEditId ? 'Atualizar produto' : 'Adicionar produto';
     }
 }
 
 function resetForm() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
-    document.getElementById('formTitle').textContent = 'Adicionar Novo Produto';
-    document.getElementById('submitBtn').textContent = 'Adicionar Produto';
+    document.getElementById('formTitle').textContent = 'Novo produto';
+    document.getElementById('submitBtn').textContent = 'Adicionar produto';
     document.getElementById('cancelBtn').style.display = 'none';
     currentEditId = null;
     
@@ -288,16 +288,32 @@ function displayProducts(products) {
 
     tbody.innerHTML = '';
 
+    // Update stats cards if present
+    const statTotal = document.getElementById('statTotal');
+    const statLowStock = document.getElementById('statLowStock');
+    const statCategories = document.getElementById('statCategories');
+    if (products && statTotal) {
+        statTotal.textContent = products.length;
+        const lowCount = products.filter(p => p.quantity < 10).length;
+        statLowStock.textContent = lowCount;
+        const cats = new Set(products.map(p => p.category));
+        statCategories.textContent = cats.size;
+    } else if (statTotal) {
+        statTotal.textContent = '0';
+        statLowStock.textContent = '0';
+        statCategories.textContent = '0';
+    }
+
     if (!products || products.length === 0) {
         table.style.display = 'none';
         emptyState.style.display = 'block';
-        productCount.textContent = '0 produtos encontrados';
+        productCount.textContent = '0 produtos';
         return;
     }
 
     table.style.display = 'table';
     emptyState.style.display = 'none';
-    productCount.textContent = `${products.length} produto(s) encontrado(s)`;
+    productCount.textContent = `${products.length} produto${products.length > 1 ? 's' : ''}`;
 
     products.forEach(product => {
         const row = tbody.insertRow();
@@ -338,8 +354,8 @@ async function editProduct(id) {
         document.getElementById('quantity').value = product.quantity;
         document.getElementById('category').value = product.category;
         
-        document.getElementById('formTitle').textContent = 'Editar Produto';
-        document.getElementById('submitBtn').textContent = 'Atualizar Produto';
+        document.getElementById('formTitle').textContent = 'Editar produto';
+        document.getElementById('submitBtn').textContent = 'Atualizar produto';
         document.getElementById('cancelBtn').style.display = 'inline-flex';
         
         currentEditId = id;
@@ -355,7 +371,8 @@ function showDeleteConfirmation(id, name) {
     deleteProductId = id;
     document.getElementById('confirmMessage').textContent = 
         `Tem certeza que deseja excluir o produto "${name}"?`;
-    document.getElementById('confirmModal').classList.add('show');
+    const modal = document.getElementById('confirmModal');
+    modal.classList.add('show');
 }
 
 function closeModal() {

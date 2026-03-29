@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciatte - Painel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="app-body">
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <div class="logo-mark">G</div>
+                <span>Gerenciatte</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html">Inicio</a>
+                <a href="#formSection" class="btn btn-primary btn-sm">+ Novo Produto</a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="app-main">
+        <div id="alertContainer"></div>
+
+        <!-- Page title -->
+        <div class="app-header">
+            <div>
+                <h1>Produtos</h1>
+                <p class="app-header-sub">Gerencie o catalogo completo de produtos</p>
+            </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <span class="stat-card-value" id="statTotal">0</span>
+                <span class="stat-card-label">Total</span>
+            </div>
+            <div class="stat-card stat-card-warn">
+                <span class="stat-card-value" id="statLowStock">0</span>
+                <span class="stat-card-label">Estoque baixo</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-card-value" id="statCategories">0</span>
+                <span class="stat-card-label">Categorias</span>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="panel" id="formSection">
+            <div class="panel-head">
+                <h2 id="formTitle">Novo produto</h2>
+            </div>
+            <form id="productForm" novalidate>
+                <input type="hidden" id="productId">
+                <div class="field-row">
+                    <div class="field">
+                        <label for="name">Nome</label>
+                        <input type="text" id="name" name="name" required minlength="3" maxlength="100" placeholder="Ex: Notebook Dell Inspiron">
+                        <span class="error-message" id="nameError"></span>
+                    </div>
+                    <div class="field">
+                        <label for="category">Categoria</label>
+                        <input type="text" id="category" name="category" required minlength="3" maxlength="50" placeholder="Ex: Eletronicos">
+                        <span class="error-message" id="categoryError"></span>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="description">Descricao</label>
+                    <textarea id="description" name="description" required minlength="10" maxlength="500" rows="3" placeholder="Descricao detalhada do produto (minimo 10 caracteres)"></textarea>
+                    <span class="error-message" id="descriptionError"></span>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="price">Preco (R$)</label>
+                        <input type="number" id="price" name="price" required min="0.01" max="999999.99" step="0.01" placeholder="0,00">
+                        <span class="error-message" id="priceError"></span>
+                    </div>
+                    <div class="field">
+                        <label for="quantity">Quantidade</label>
+                        <input type="number" id="quantity" name="quantity" required min="0" max="999999" step="1" placeholder="0">
+                        <span class="error-message" id="quantityError"></span>
+                    </div>
+                </div>
+                <div class="form-foot">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Adicionar produto</button>
+                    <button type="button" class="btn btn-ghost" id="cancelBtn" style="display:none;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Search & table -->
+        <div class="panel">
+            <div class="panel-head">
+                <h2>Catalogo</h2>
+                <span class="count-badge" id="productCount">0 produtos</span>
+            </div>
+            <div class="toolbar">
+                <div class="search-bar">
+                    <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" id="searchInput" placeholder="Buscar por nome...">
+                    <button class="btn btn-primary btn-sm" id="searchBtn">Buscar</button>
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-outline-warn btn-sm" id="lowStockBtn">Estoque baixo</button>
+                    <button class="btn btn-ghost btn-sm" id="showAllBtn">Todos</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Produto</th>
+                            <th>Categoria</th>
+                            <th>Descricao</th>
+                            <th>Preco</th>
+                            <th>Qtd</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty" style="display:none;">
+                <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                <p class="empty-title">Nenhum produto encontrado</p>
+                <p class="empty-sub">Adicione o primeiro produto usando o formulario acima.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-foot">
+        <p>&copy; 2026 Gerenciatte</p>
+    </footer>
+
+    <!-- Delete modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </div>
+            <h3>Excluir produto</h3>
+            <p id="confirmMessage">Tem certeza que deseja excluir este produto? Essa acao nao pode ser desfeita.</p>
+            <div class="modal-btns">
+                <button class="btn btn-ghost" id="cancelDeleteBtn">Cancelar</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const toggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        toggle.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+            toggle.classList.toggle('active');
+        });
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>

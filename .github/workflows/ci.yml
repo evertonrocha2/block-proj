@@ -509,7 +509,7 @@ jobs:
         run: |
           echo "## Deploy Vercel (Frontend)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Arquivos**: index.html, app.js, styles.css" >> $GITHUB_STEP_SUMMARY
+          echo "- **Arquivos**: index.html, app.html, app.js, styles.css" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
 
   # ============================================

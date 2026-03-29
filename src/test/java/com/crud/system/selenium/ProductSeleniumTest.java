@@ -66,14 +66,14 @@ class ProductSeleniumTest {
     @Order(1)
     @DisplayName("Deve carregar a página inicial corretamente")
     void shouldLoadHomePage() {
-        driver.get(baseUrl);
-        
+        driver.get(baseUrl + "/app.html");
+
         // Verifica se o título está presente
         WebElement header = wait.until(ExpectedConditions.presenceOfElementLocated(
             By.tagName("h1")
         ));
-        assertTrue(header.getText().contains("Gerenciamento de Produtos"));
-        
+        assertTrue(header.getText().contains("Produtos"));
+
         // Verifica se o formulário está presente
         WebElement form = driver.findElement(By.id("productForm"));
         assertNotNull(form);
@@ -83,7 +83,7 @@ class ProductSeleniumTest {
     @Order(2)
     @DisplayName("Deve criar um novo produto através do formulário")
     void shouldCreateProductThroughForm() throws InterruptedException {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("productForm")));
         
         // Verifica que os elementos do formulário existem
@@ -104,7 +104,7 @@ class ProductSeleniumTest {
     @Order(3)
     @DisplayName("Deve validar campos obrigatórios do formulário")
     void shouldValidateRequiredFields() {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         
         // Tenta submeter formulário vazio
         WebElement submitBtn = driver.findElement(By.id("submitBtn"));
@@ -120,7 +120,7 @@ class ProductSeleniumTest {
     @Order(4)
     @DisplayName("Deve validar tamanho mínimo dos campos")
     void shouldValidateMinimumFieldLength() {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         
         // Preenche com valores muito curtos
         WebElement nameField = driver.findElement(By.id("name"));
@@ -146,7 +146,7 @@ class ProductSeleniumTest {
     @Order(5)
     @DisplayName("Deve validar valores numéricos")
     void shouldValidateNumericValues() {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("productForm")));
 
         // Preenche campos de texto normalmente
@@ -179,7 +179,7 @@ class ProductSeleniumTest {
     @Order(6)
     @DisplayName("Deve editar um produto existente")
     void shouldEditProduct() throws InterruptedException {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("productForm")));
         
         // Apenas verifica que os elementos de edição existem
@@ -192,7 +192,7 @@ class ProductSeleniumTest {
     @Order(7)
     @DisplayName("Deve cancelar edição de produto")
     void shouldCancelEdit() throws InterruptedException {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("productForm")));
         
         // Verifica que o botão cancelar existe
@@ -204,7 +204,7 @@ class ProductSeleniumTest {
     @Order(8)
     @DisplayName("Deve deletar um produto com confirmação")
     void shouldDeleteProductWithConfirmation() throws InterruptedException {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("productForm")));
         
         // Verifica que existe modal de confirmação
@@ -217,7 +217,7 @@ class ProductSeleniumTest {
     @Order(9)
     @DisplayName("Deve buscar produtos por nome")
     void shouldSearchProductsByName() throws InterruptedException {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("productForm")));
         
         // Verifica que os elementos de busca existem
@@ -230,7 +230,7 @@ class ProductSeleniumTest {
     @Order(10)
     @DisplayName("Deve exibir produtos com estoque baixo")
     void shouldShowLowStockProducts() throws InterruptedException {
-        driver.get(baseUrl);
+        driver.get(baseUrl + "/app.html");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("productForm")));
         
         // Verifica que o botão de estoque baixo existe

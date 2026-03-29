@@ -3,140 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gerenciamento de Produtos</title>
+    <title>Gerenciatte</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🏪 Sistema de Gerenciamento de Produtos</h1>
-            <p class="subtitle">Sistema CRUD robusto com validações avançadas</p>
-        </header>
-
-        <!-- Mensagens de feedback -->
-        <div id="alertContainer"></div>
-
-        <!-- Formulário de Produto -->
-        <section class="form-section">
-            <h2 id="formTitle">Adicionar Novo Produto</h2>
-            <form id="productForm" novalidate>
-                <input type="hidden" id="productId">
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="name">Nome do Produto *</label>
-                        <input type="text" id="name" name="name" required 
-                               minlength="3" maxlength="100"
-                               placeholder="Ex: Notebook Dell">
-                        <span class="error-message" id="nameError"></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="category">Categoria *</label>
-                        <input type="text" id="category" name="category" required 
-                               minlength="3" maxlength="50"
-                               placeholder="Ex: Eletrônicos">
-                        <span class="error-message" id="categoryError"></span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="description">Descrição *</label>
-                    <textarea id="description" name="description" required 
-                              minlength="10" maxlength="500" rows="3"
-                              placeholder="Descrição detalhada do produto (mínimo 10 caracteres)"></textarea>
-                    <span class="error-message" id="descriptionError"></span>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="price">Preço (R$) *</label>
-                        <input type="number" id="price" name="price" required 
-                               min="0.01" max="999999.99" step="0.01"
-                               placeholder="0.00">
-                        <span class="error-message" id="priceError"></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="quantity">Quantidade *</label>
-                        <input type="number" id="quantity" name="quantity" required 
-                               min="0" max="999999" step="1"
-                               placeholder="0">
-                        <span class="error-message" id="quantityError"></span>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        Adicionar Produto
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="cancelBtn" style="display:none;">
-                        Cancelar
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <!-- Filtros e Busca -->
-        <section class="search-section">
-            <h2>Buscar Produtos</h2>
-            <div class="search-controls">
-                <div class="search-group">
-                    <input type="text" id="searchInput" placeholder="Buscar por nome...">
-                    <button class="btn btn-search" id="searchBtn">🔍 Buscar</button>
-                </div>
-                <button class="btn btn-info" id="lowStockBtn">⚠️ Estoque Baixo</button>
-                <button class="btn btn-secondary" id="showAllBtn">📋 Todos</button>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <div class="logo-mark">G</div>
+                <span>Gerenciatte</span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="#features">Recursos</a>
+                <a href="#stack">Tecnologias</a>
+                <a href="#pipeline">Pipeline</a>
+                <a href="app.html" class="btn btn-primary btn-sm">Abrir painel</a>
             </div>
-        </section>
+            <button class="nav-toggle" id="navToggle" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
 
-        <!-- Tabela de Produtos -->
-        <section class="table-section">
-            <h2>Lista de Produtos</h2>
-            <div class="table-info">
-                <span id="productCount">0 produtos encontrados</span>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-glow hero-glow-1"></div>
+        <div class="hero-glow hero-glow-2"></div>
+        <div class="hero-grid-bg"></div>
+        <div class="hero-inner">
+            <div class="hero-pill">
+                <span class="pill-dot"></span>
+                Sistema de Gestao de Produtos
             </div>
-            <div class="table-container">
-                <table id="productsTable">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome</th>
-                            <th>Categoria</th>
-                            <th>Descrição</th>
-                            <th>Preço</th>
-                            <th>Quantidade</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsTableBody">
-                        <!-- Produtos serão inseridos via JavaScript -->
-                    </tbody>
-                </table>
+            <h1>Controle total do<br>seu <span class="gradient-text">estoque</span></h1>
+            <p class="hero-sub">
+                Cadastro, busca, edicao e monitoramento de estoque em uma unica interface.
+                Construido com Java 17, Spring Boot e pipeline CI/CD completo.
+            </p>
+            <div class="hero-cta">
+                <a href="app.html" class="btn btn-primary btn-lg">
+                    Acessar painel
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+                <a href="#features" class="btn btn-ghost btn-lg">Saiba mais</a>
             </div>
-            <div id="emptyState" class="empty-state" style="display:none;">
-                <p>📦 Nenhum produto cadastrado ainda.</p>
-                <p>Use o formulário acima para adicionar o primeiro produto!</p>
-            </div>
-        </section>
-
-        <footer>
-            <p>&copy; 2026 Sistema de Gerenciamento de Produtos | Desenvolvido com foco em robustez e qualidade</p>
-        </footer>
-    </div>
-
-    <!-- Modal de Confirmação -->
-    <div id="confirmModal" class="modal">
-        <div class="modal-content">
-            <h3>Confirmar Exclusão</h3>
-            <p id="confirmMessage">Tem certeza que deseja excluir este produto?</p>
-            <div class="modal-actions">
-                <button class="btn btn-danger" id="confirmDeleteBtn">Sim, Excluir</button>
-                <button class="btn btn-secondary" id="cancelDeleteBtn">Cancelar</button>
+            <div class="hero-metrics">
+                <div class="metric">
+                    <strong>296+</strong>
+                    <span>Testes</span>
+                </div>
+                <div class="metric-sep"></div>
+                <div class="metric">
+                    <strong>90%+</strong>
+                    <span>Cobertura</span>
+                </div>
+                <div class="metric-sep"></div>
+                <div class="metric">
+                    <strong>7</strong>
+                    <span>Jobs CI/CD</span>
+                </div>
+                <div class="metric-sep"></div>
+                <div class="metric">
+                    <strong>3</strong>
+                    <span>Ambientes</span>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <script src="app.js"></script>
+    <!-- Features -->
+    <section class="section" id="features">
+        <div class="container">
+            <div class="section-label">Recursos</div>
+            <h2 class="section-title">Tudo que voce precisa,<br>nada que voce nao precisa</h2>
+            <div class="features-grid">
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                    </div>
+                    <h3>CRUD completo</h3>
+                    <p>Crie, leia, atualize e delete produtos com validacoes em tempo real em todos os campos.</p>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </div>
+                    <h3>Busca e filtros</h3>
+                    <p>Busque por nome, filtre por categoria e identifique itens com estoque baixo instantaneamente.</p>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                    </div>
+                    <h3>Seguranca integrada</h3>
+                    <p>Analise SAST com SpotBugs e DAST com testes de injecao SQL, XSS e headers de seguranca.</p>
+                </div>
+                <div class="feat-card">
+                    <div class="feat-icon">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    </div>
+                    <h3>Monitoramento</h3>
+                    <p>Health checks, smoke tests e testes pos-deploy com Selenium garantem integridade do sistema.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="section section-dark" id="stack">
+        <div class="container">
+            <div class="section-label section-label-light">Tecnologias</div>
+            <h2 class="section-title section-title-light">Stack robusta e moderna</h2>
+            <div class="stack-grid">
+                <div class="stack-item">
+                    <div class="stack-name">Java 17</div>
+                    <div class="stack-desc">Linguagem principal</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">Spring Boot 3.2</div>
+                    <div class="stack-desc">Framework backend</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">Maven</div>
+                    <div class="stack-desc">Build & dependencias</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">JUnit 5</div>
+                    <div class="stack-desc">Testes unitarios</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">Selenium 4</div>
+                    <div class="stack-desc">Testes E2E</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">JaCoCo</div>
+                    <div class="stack-desc">Cobertura 90%+</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">GitHub Actions</div>
+                    <div class="stack-desc">CI/CD pipeline</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">Vercel</div>
+                    <div class="stack-desc">Deploy frontend</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">SpotBugs</div>
+                    <div class="stack-desc">Analise SAST</div>
+                </div>
+                <div class="stack-item">
+                    <div class="stack-name">H2 Database</div>
+                    <div class="stack-desc">Banco de dados</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pipeline -->
+    <section class="section" id="pipeline">
+        <div class="container">
+            <div class="section-label">Pipeline CI/CD</div>
+            <h2 class="section-title">Do commit ao deploy<br>em minutos</h2>
+            <div class="pipeline">
+                <div class="pipe-step">
+                    <div class="pipe-num">01</div>
+                    <div class="pipe-info">
+                        <h4>Build & Testes</h4>
+                        <p>Compilacao Maven, 296+ testes automatizados, relatorio JaCoCo com 90%+ de cobertura.</p>
+                    </div>
+                </div>
+                <div class="pipe-step">
+                    <div class="pipe-num">02</div>
+                    <div class="pipe-info">
+                        <h4>Seguranca</h4>
+                        <p>SAST com SpotBugs e DAST com payloads de SQL injection, XSS e validacao de headers.</p>
+                    </div>
+                </div>
+                <div class="pipe-step">
+                    <div class="pipe-num">03</div>
+                    <div class="pipe-info">
+                        <h4>Deploy Dev & Staging</h4>
+                        <p>Deploy automatico com health checks, smoke tests e testes pos-deploy com Selenium.</p>
+                    </div>
+                </div>
+                <div class="pipe-step">
+                    <div class="pipe-num">04</div>
+                    <div class="pipe-info">
+                        <h4>Producao</h4>
+                        <p>Deploy com aprovacao manual via environment protection rules do GitHub.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section-cta">
+        <div class="container">
+            <h2>Pronto para gerenciar?</h2>
+            <p>Acesse o painel e comece a cadastrar seus produtos agora.</p>
+            <a href="app.html" class="btn btn-white btn-lg">
+                Abrir painel
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <div class="logo-mark logo-mark-sm">G</div>
+                <span>Gerenciatte</span>
+            </div>
+            <p>&copy; 2026 Gerenciatte</p>
+        </div>
+    </footer>
+
+    <script>
+        const toggle = document.getElementById('navToggle');
+        const links = document.getElementById('navLinks');
+        toggle.addEventListener('click', () => {
+            links.classList.toggle('open');
+            toggle.classList.toggle('active');
+        });
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const t = document.querySelector(a.getAttribute('href'));
+                if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                links.classList.remove('open');
+                toggle.classList.remove('active');
+            });
+        });
+        // Navbar blur on scroll
+        const nav = document.querySelector('.navbar');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 20);
+        });
+    </script>
 </body>
 </html>
