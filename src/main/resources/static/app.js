@@ -1,5 +1,5 @@
 // Configuração da API
-const API_BASE_URL = 'http://localhost:8080/api/products';
+const API_BASE_URL = window.location.origin + '/api/products';
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
