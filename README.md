@@ -11,7 +11,7 @@ Sistema de gerenciamento de produtos e pedidos com Spring Boot, interface web e 
 
 ---
 
-Link do frontend: https://block-proj-lvpqujgi4-evertonrocha2s-projects.vercel.app/
+Link do frontend: https://block-proj-xi.vercel.app/
 
 ---
 ## Arquitetura do Sistema
