@@ -11,7 +11,7 @@ Sistema de gerenciamento de produtos e pedidos com Spring Boot, interface web e 
 
 ---
 
-Link do frontend: https://block-proj-xi.vercel.app/
+Link do deploy completo pela Railway: https://block-proj-production.up.railway.app/
 
 ---
 ## Arquitetura do Sistema
